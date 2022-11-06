@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>函数响应式编程 | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>函数响应式编程</h1>
+    </header>
+
+    <section>
+      <h1 id="函数响应式编程"><a href="#函数响应式编程" class="headerlink" title="# 函数响应式编程"></a># 函数响应式编程</h1><p>开始之前了解一下什么是<strong>函数响应式编程</strong>？</p>
+<p><strong>函数响应式编程</strong>是种编程范式。它是通过构建函数操作数据序列，然后对这些序列做出响应的编程方式。它结合了<strong>函数式编程</strong>以及<strong>响应式编程</strong></p>
+<h2 id="函数式编程"><a href="#函数式编程" class="headerlink" title="函数式编程"></a>函数式编程</h2><p><strong>函数式编程</strong>—它需要我们将函数作为参数传递，或者作为返回值返还。我们可以通过组合不同的函数来得到想要的结果。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">allPeople.filter&#123; people in people.age == 18 &#125;.forEach &#123; youngPeople in youngPeople.play(activity: .study )&#125;</span><br><span class="line"></span><br><span class="line">filter中返回值是people 是经过筛选的people  数组形式</span><br></pre></td></tr></table></figure>
+
+<p>个人在日常开发中用遇到的的就是函数式编程（链式调用） 就如在统计相关信息上传的时候 参数比较多</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">```statistics.name(hello).info(info).upload()```</span><br></pre></td></tr></table></figure>
+
+<p><strong>函数式编程</strong>来操作序列</p>
+<h2 id="响应式编程"><a href="#响应式编程" class="headerlink" title="响应式编程"></a>响应式编程</h2><p><strong>响应式编程（reactive programming）是一种基于数据流（data stream）和变化传递（propagation of change）的声明式（declarative）的编程范式。</strong></p>
+<span id="more"></span>
+
+<p>现在学习的RxSwift中响应式编程来一个预理解：应该是 有并发和事件驱动结合观察者来编程的一种范式或者说是一种风格</p>
+<blockquote>
+<p>Reactive响应式(反应式)编程 是一种新的编程风格，其特点是异步或并发、事件驱动、推送PUSH机制以及观察者模式的衍生。</p>
+</blockquote>
+<h2 id="函数响应式编程（两者融合）"><a href="#函数响应式编程（两者融合）" class="headerlink" title="函数响应式编程（两者融合）"></a>函数响应式编程（两者融合）</h2><p>由以上两种的编程范式，结合起来就得到了<strong>函数响应式编程</strong>。</p>
+<p>函数式负责序列操作，响应式负责监听变化，响应这个序列。当然这个序列是具备着特别的封装（异步等）</p>
+<p>我们通过不同的构建函数，来创建所需要的数据序列。最后通过适当的方式来响应这个序列。这就是<strong>函数响应式编程</strong>。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 按钮点击序列</span></span><br><span class="line"><span class="keyword">let</span> taps: <span class="type">Observable</span>&lt;<span class="type">Void</span>&gt; <span class="operator">=</span> button.rx.tap.asObservable()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 每次点击后弹出提示框</span></span><br><span class="line">taps.subscribe(onNext: &#123; showAlert() &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>​	  </p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-11-03T03:36:28.000Z" itemprop="datePublished">
+              2021-11-03
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/New-Challenge/">New Challenge</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

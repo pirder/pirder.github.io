@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Objective-C的间接指针 | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>Objective-C的间接指针</h1>
+    </header>
+
+    <section>
+      <p>昨日的一篇写的__autoreleasing ARC下关于Objective-C二级指针 让我有点不一样的想法 感觉对这一块有点模糊。为什么搞得那么复杂呢，还要显式的去转换才能用呢？</p>
+<p>从一个int *开始对比学习吧 （想法的基础）</p>
+<pre><code>int inv =20;
+
+int *p = &amp;inv;
+
+NSLog(@&quot;\n--指针变量的地址%p&quot;,&amp;p);
+
+NSLog(@&quot;\n--指针指向的int的地址%p&quot;,&amp;inv);
+
+NSLog(@&quot;\n--指针指向的地址%p&quot;,p);
+
+NSLog(@&quot;\n--指针指向的地址的值%d&quot;,*p);
+
+*p =10;
+
+NSLog(@&quot;\n--修改过后指针指向的地址%p&quot;,p);
+
+NSLog(@&quot;\n--修改过后指针指向的地址的值%d&quot;,*p);
+</code></pre>
+<span id="more"></span>
+
+<p><img src="/./image1.png" alt="打印结果.png"><br>打印结果</p>
+<p>也就是所*p 的值 操作对应地址的值</p>
+<p>直接粗暴来试试</p>
+<pre><code>NSObject *o = [[NSObject alloc]init];
+
+NSObject *ob = &amp;o; 
+
+*o =  [[NSObject alloc]init];
+</code></pre>
+<p>Implicit conversion of an indirect pointer to an Objective-C pointer to ‘NSObject *’ is disallowed with ARC</p>
+<p>所以我们就需要__autoreleasing ARC 的Objective-C二级指针 来进行转换</p>
+<p>我们直接打印看看一看究竟为什么不行</p>
+<p>而为什么按理论来说是可行的</p>
+<pre><code>NSObject *o = [[NSObject alloc]init];
+
+NSLog(@&quot;\n--NSObject指针变量的地址%p&quot;,&amp;o);
+
+NSLog(@&quot;\n--指针指向的NSObject的地址%p&quot;,o);
+</code></pre>
+<p><img src="/./image2.png" alt="打印结果2.png"><br>打印结果2<br>咦 好家伙 按这个道理 那我可以直接就 *o 不就是isa 那接着就可以骚操作了</p>
+<p>对的 但是粗暴可不行 oc按照oc的来 Class o_isa &#x3D;  object_getClass(o);</p>
+<p>噢 那跟一开始的想法不咋一样 emmm 再想想办法</p>
+<p>不用oc 用 C 操作一下？</p>
+<pre><code>void **o_void_isa = (__bridge void *)o;
+
+printf(&quot;\n --- *obj %p&quot;,*o_void_isa);
+
+printf(&quot;\n --- *Class %p\n&quot;,o_isa);
+</code></pre>
+<p><img src="/./image3.png" alt="打印结果.png"><br>打印结果3<br>真不错 还是同样的味道</p>
+<p>那行 我直接isa替换 再调个方法试试</p>
+<pre><code>MCBlock *tempMCObj = [[MCBlock alloc] init];
+
+void **temp = (__bridge void * )tempMCObj;
+
+NSLog(@&quot;替换前 %@ testBlock这个方法&quot;,[o  respondsToSelector:@selector(testBlock)] ? @&quot;有&quot;:@&quot;没有&quot;);
+
+*o_void_isa = *temp;
+
+[o performSelector:@selector(testBlock)];
+</code></pre>
+<p><img src="/./image4.png" alt="打印结果.png"><br>打印结果4<br>方法调用是实现了 会不会带来其他的问题呢？</p>
+<p>修改了它的isa指针 那么存储的信息有一点的变化 接着 它的属性&#x2F;成员变量的偏移量发生了改变 好像可以强行的加入了成员变量和属性</p>
+<p>但是存在一个问题 NSObject 在编译期间就确定了他的大小</p>
+<p>（那么改变了isa具体怎么去查找方法 怎么去取变量的内容 其实就是可以理解为规则改变了 按照MCBlock规则的来取变量 那么MCBlock里面就有我们的如图的成员变量和属性 原vcObj是NSObject）</p>
+<p>注意但凡涉及到取其成员变量 可能存在访问越界 超出了当初申请的内存空间大小。图中只是打印方法的名字 没有涉及成员变量。</p>
+<p>上述可认定为强制类型转换 vcObj 已经变成了MCBlock</p>
+<p>如果我们拿同类型进行操作的话那就是我们通过指针的形式返回值这一个目的了(接上篇)</p>
+<p><img src="/./image5.png" alt="打印结果.png"><br>打印结果5</p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-07-13T15:46:16.000Z" itemprop="datePublished">
+              2021-07-13
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/%E6%97%A5%E5%B8%B8%E9%9A%8F%E7%AC%94/">日常随笔</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>load_images | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>load_images</h1>
+    </header>
+
+    <section>
+      <h1 id="load-images"><a href="#load-images" class="headerlink" title="load_images"></a>load_images</h1><p>load_image 会对每个image进行加载 多次调用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">if (!didInitialAttachCategories &amp;&amp; didCallDyldNotifyRegister) &#123;</span><br><span class="line">        didInitialAttachCategories = true;</span><br><span class="line">        loadAllCategories();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>新版objc 把加载分类的方法延迟到了<br>完成_dyld_objc_notify_register调用之后<br>旧版在map_images时候 就已经统一加载了<br>所以本章节 要对loadAllCategories 进行分析</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// Return without taking locks if there are no +load methods here.</span><br><span class="line">if (!hasLoadMethods((const headerType *)mh))</span><br><span class="line">	return;</span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+
+<blockquote>
+<p>判断没有load 方法直接return<br>_getObjc2NonlazyClassList 快速获取 来判断<br>_getObjc2NonlazyCategoryList</p>
+</blockquote>
+<h2 id="prepare-load-methods"><a href="#prepare-load-methods" class="headerlink" title="prepare_load_methods"></a>prepare_load_methods</h2><p>准备加载load相关方法<br>1、加载非懒加载类的load方法。  </p>
+<blockquote>
+<p>递归加载父类load方法<br>把cls加入全局+load的类列表</p>
+</blockquote>
+<p>2、加载分类的load方法。</p>
+<blockquote>
+<p>取出分类的宿主类<br>realize宿主类（分类的宿主类不一定实现了load方法 因为 未实现的load的类在mapImages阶段 并不会realize）<br>把cat加入全局+load的分类列表</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">加入全局的load列表两者方式类似 </span><br><span class="line">取出类方法 load是类方法 遍历selName == load即可</span><br><span class="line">类 ==&gt; ISA()-&gt;data()-&gt;ro()-&gt;baseMethods()</span><br><span class="line">分类 ==&gt;直接取出类列表 </span><br></pre></td></tr></table></figure>
+
+<h2 id="call-load-methods"><a href="#call-load-methods" class="headerlink" title="call_load_methods"></a>call_load_methods</h2><blockquote>
+<p>先执行类的load方法<br>在执行分类的load方法</p>
+</blockquote>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-09-02T06:55:02.000Z" itemprop="datePublished">
+              2021-09-02
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/objc%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">objc源码阅读</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

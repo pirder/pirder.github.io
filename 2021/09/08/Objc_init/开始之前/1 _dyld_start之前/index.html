@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>_dyld_start 之前 | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>_dyld_start 之前</h1>
+    </header>
+
+    <section>
+      <h1 id="dyld-start-之前"><a href="#dyld-start-之前" class="headerlink" title="_dyld_start 之前"></a>_dyld_start 之前</h1><h2 id="内核挖掘-dyld-start是怎么被调用到的"><a href="#内核挖掘-dyld-start是怎么被调用到的" class="headerlink" title="内核挖掘 _dyld_start是怎么被调用到的"></a>内核挖掘 _dyld_start是怎么被调用到的</h2><blockquote>
+<p>_dyld_start的方法地址的确是在 LC_UNIXTHREAD 段中解析出来的。后续通过thread_setentrypoint 直接将用户态的pc设置到这个地址来执行的。</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="dyld-start-是如何一步步执行到的？"><a href="#dyld-start-是如何一步步执行到的？" class="headerlink" title="_dyld_start 是如何一步步执行到的？"></a>_dyld_start 是如何一步步执行到的？</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">▼ execve       // 用户点击了app, 用户态会发送一个系统调用 execve 到内核</span><br><span class="line">  ▼ __mac_execve  // 创建线程</span><br><span class="line">    ▼ exec_activate_image // 在 encapsulated_binary 这一步会根据image的类型选择imgact的方法</span><br><span class="line">      ▼ exec_mach_imgact //主要Mach-o检测 检测头部 解析架构 检查imgp 拒绝dylib bundle （由dyld加载）！！把Mach-o映射到内存中</span><br><span class="line">        ▼ load_machfile //会加载Mach-O中的各种load monmand命令 内部会禁止数据段执行，防止溢出漏洞攻击，还会设置地址空间布局随机化（ASLR），还有一些映射的调整</span><br><span class="line">          ▶︎ parse_machfile  //解析主二进制macho  对于命令的加载会进行多次扫描，当扫描三次之后，并且存在dylinker_command命令时，会执行 load_dylinker()，启动动态链接器 (dyld)</span><br><span class="line">          ▼ load_dylinker // 解析完 macho后，根据macho中的 LC_LOAD_DYLINKER 这个LoadCommand来启动这个二进制的加载器，即 /usr/bin/dyld</span><br><span class="line">            ▼ parse_machfile // 解析 dyld 这个mach-o文件，这个过程中会解析出entry_point</span><br><span class="line">        ▼ activate_exec_state</span><br><span class="line">          ▶︎ thread_setentrypoint // 设置entry_point。</span><br><span class="line">          </span><br></pre></td></tr></table></figure>
+<p>暂且简单 利用此总结的原因 继续从_dyld_start 内部 来学习其他内容<br>引用：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/8498cec10a41">https://www.jianshu.com/p/8498cec10a41</a></p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-09-08T09:54:52.000Z" itemprop="datePublished">
+              2021-09-08
+            </time>
+          </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

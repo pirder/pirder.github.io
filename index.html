@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <ul class="Index">
+  
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/11/21/Interview_About/%E8%87%AA%E6%88%91%E9%97%AE%E7%AD%94/">自我提问</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-11-21T08:48:50.000Z" itemprop="datePublished">
+    2021-11-21
+  </time>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="自我提问"><a href="#自我提问" class="headerlink" title="自我提问"></a>自我提问</h1><h2 id="iOS内存管理方式"><a href="#iOS内存管理方式" class="headerlink" title="iOS内存管理方式"></a>iOS内存管理方式</h2><p>iOS内存管理方式，引用计数的方式 有自动引用计数ARC和手动引用计数MRC。日常使用自动引用计数，编译器和Runtime协作在我们代码恰当的位置 加入retain release。runtime会维护一个散列表也就是SideTables 里面有引用计数表和弱引用计数表 对象被引用 指针指向时候加一 对象不再指向或者引用之后减一 一个引用对象在引用计数为0的时候被释放掉，回收内存。<br>可能引发点 说说弱引用的实现？  说说引用计数表的实现？  autoreleasePush你了解过吗？ 内存泄漏问题？</p>
+        
+          <div class="more-link">
+            <a href="/2021/11/21/Interview_About/%E8%87%AA%E6%88%91%E9%97%AE%E7%AD%94/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/11/08/%E6%97%A5%E5%B8%B8%E9%9A%8F%E7%AC%94/Swift%20Framewrok%20Module%20Stability/">Swift Framewrok Module Stability</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-11-08T08:59:32.000Z" itemprop="datePublished">
+    2021-11-08
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/%E6%97%A5%E5%B8%B8%E9%9A%8F%E7%AC%94/">日常随笔</a> }
+  </li>
+
+
+  </ul>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="Swift-Framewrok-Module-Stability"><a href="#Swift-Framewrok-Module-Stability" class="headerlink" title="Swift Framewrok Module Stability"></a>Swift Framewrok Module Stability</h1><h2 id="Module-Stability"><a href="#Module-Stability" class="headerlink" title="Module Stability"></a>Module Stability</h2><p>ABI Stability 解决的是不同 Swift 版本的代码在运行时的兼容性问题，而 Module Stability 则要解决的是不同 Swift 版本的代码在编译时的兼容性问题。</p>
+
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/11/04/%E5%AD%A6%E4%B9%A0%E6%96%B0%E5%BE%81%E7%A8%8B/RxSwift/RxSwift%E7%AE%80%E5%8D%95%E5%85%A5%E9%97%A8/">Rxswift简单入门</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-11-04T02:36:28.000Z" itemprop="datePublished">
+    2021-11-04
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/New-Challenge/">New Challenge</a> }
+  </li>
+
+
+  </ul>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="RxSwift简单入门"><a href="#RxSwift简单入门" class="headerlink" title="# RxSwift简单入门"></a># RxSwift简单入门</h1><p>​		最近接手了一个其他部门开发的相机类项目，现全权由我们组进行维护。我打开一看，整挺好全是RxSwift（心里骂骂咧咧，咋平常也没用都是原生开发），应该提前让我们看代码的，收到需求了才开始看，还好一天就够了。马上就打开了RxSwift文档来看 过一遍基础的东西。</p>
+<p>​		首先了解到究竟 Rx这个特点是啥，函数响应式编程，前一篇文章了解这个概念之后；就进行下一步的关于RxSwift的核心API和一些基础理论的学习了。</p>
+<p>​		一开始接受这些那些的可监听序列，观察者等概念，是迷糊的，是抗拒的；心里也很想明白其中的中心思想是啥，他们怎么去运作的呢？（有些新东西一开始不太懂，只能用程序打败程序，函数打败函数，如下代码块）</p>
+<p>​		先说个人总结：序列相当于触发者，也就是说序列，相当于我们传统思维中写好的一些函数；那有函数，必须就要有函数调用。噢，剩下一个那就是观察者了，观察者跟我们单纯的调用不一样，我们可以在里面进行再处理。</p>
+<p>​		个人认为特点在于序列的再组合(各种个样的操作符filter,map,merge等)，也就是函数式调用。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typealias</span> <span class="type">TYPE</span> <span class="operator">=</span> <span class="type">Int</span></span><br><span class="line"><span class="comment">//可监听序列</span></span><br><span class="line"><span class="keyword">let</span> observabler: <span class="type">Observable</span>&lt;<span class="type">TYPE</span>&gt; <span class="operator">=</span> <span class="comment">//这里的返回值是type</span></span><br><span class="line"><span class="type">Observable</span>.create &#123; (observer) -&gt; <span class="type">Disposable</span> <span class="keyword">in</span></span><br><span class="line">  <span class="keyword">let</span> resultType <span class="operator">=</span> type.<span class="keyword">init</span>()</span><br><span class="line">  <span class="comment">//----在此处做一些基本的操作----</span></span><br><span class="line">  observer.onNext(resultType)</span><br><span class="line">  observer.onCompleted()</span><br><span class="line">  <span class="keyword">return</span> <span class="type">Disposables</span>.create()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//观察者</span></span><br><span class="line">observabler.subscribe(onNext: &#123; (tpye)</span><br><span class="line">   <span class="built_in">print</span>(<span class="string">&quot;onNext<span class="subst">\(type)</span>&quot;</span>)</span><br><span class="line">&#125;, onErrir: &#123; error <span class="keyword">in</span></span><br><span class="line">   <span class="built_in">print</span>(<span class="string">&quot;error&quot;</span>)</span><br><span class="line">&#125;, onCompleted: &#123;</span><br><span class="line">   <span class="built_in">print</span>(<span class="string">&quot;completed&quot;</span>)</span><br><span class="line">&#125;).disposed(by: disposeBag)</span><br></pre></td></tr></table></figure>
+        
+          <div class="more-link">
+            <a href="/2021/11/04/%E5%AD%A6%E4%B9%A0%E6%96%B0%E5%BE%81%E7%A8%8B/RxSwift/RxSwift%E7%AE%80%E5%8D%95%E5%85%A5%E9%97%A8/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/11/03/%E5%AD%A6%E4%B9%A0%E6%96%B0%E5%BE%81%E7%A8%8B/RxSwift/%E5%87%BD%E6%95%B0%E5%93%8D%E5%BA%94%E5%BC%8F%E7%BC%96%E7%A8%8B/">函数响应式编程</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-11-03T03:36:28.000Z" itemprop="datePublished">
+    2021-11-03
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/New-Challenge/">New Challenge</a> }
+  </li>
+
+
+  </ul>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="函数响应式编程"><a href="#函数响应式编程" class="headerlink" title="# 函数响应式编程"></a># 函数响应式编程</h1><p>开始之前了解一下什么是<strong>函数响应式编程</strong>？</p>
+<p><strong>函数响应式编程</strong>是种编程范式。它是通过构建函数操作数据序列，然后对这些序列做出响应的编程方式。它结合了<strong>函数式编程</strong>以及<strong>响应式编程</strong></p>
+<h2 id="函数式编程"><a href="#函数式编程" class="headerlink" title="函数式编程"></a>函数式编程</h2><p><strong>函数式编程</strong>—它需要我们将函数作为参数传递，或者作为返回值返还。我们可以通过组合不同的函数来得到想要的结果。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">allPeople.filter&#123; people in people.age == 18 &#125;.forEach &#123; youngPeople in youngPeople.play(activity: .study )&#125;</span><br><span class="line"></span><br><span class="line">filter中返回值是people 是经过筛选的people  数组形式</span><br></pre></td></tr></table></figure>
+
+<p>个人在日常开发中用遇到的的就是函数式编程（链式调用） 就如在统计相关信息上传的时候 参数比较多</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">```statistics.name(hello).info(info).upload()```</span><br></pre></td></tr></table></figure>
+
+<p><strong>函数式编程</strong>来操作序列</p>
+<h2 id="响应式编程"><a href="#响应式编程" class="headerlink" title="响应式编程"></a>响应式编程</h2><p><strong>响应式编程（reactive programming）是一种基于数据流（data stream）和变化传递（propagation of change）的声明式（declarative）的编程范式。</strong></p>
+        
+          <div class="more-link">
+            <a href="/2021/11/03/%E5%AD%A6%E4%B9%A0%E6%96%B0%E5%BE%81%E7%A8%8B/RxSwift/%E5%87%BD%E6%95%B0%E5%93%8D%E5%BA%94%E5%BC%8F%E7%BC%96%E7%A8%8B/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/11/02/%E6%97%A5%E5%B8%B8%E9%9A%8F%E7%AC%94/%E4%BD%BF%E7%94%A8hexo%E6%9E%84%E5%BB%BA%E5%92%8C%E6%8F%90%E4%BA%A4%E6%96%87%E7%AB%A0/">使用hexo构建和提交文章</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-11-02T05:45:23.000Z" itemprop="datePublished">
+    2021-11-02
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/%E6%97%A5%E5%B8%B8%E9%9A%8F%E7%AC%94/">日常随笔</a> }
+  </li>
+
+
+  </ul>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="集成Hexo-框架的GitHub-博客框架"><a href="#集成Hexo-框架的GitHub-博客框架" class="headerlink" title="集成Hexo 框架的GitHub 博客框架"></a>集成Hexo 框架的GitHub 博客框架</h1><h2 id="1、安装node-js"><a href="#1、安装node-js" class="headerlink" title="1、安装node.js"></a>1、安装node.js</h2><p>使用homebrew<br>brew install node </p>
+<h2 id="2、安装-Hexo"><a href="#2、安装-Hexo" class="headerlink" title="2、安装 Hexo"></a>2、安装 Hexo</h2><p>所有必备的应用程序安装完成后，即可使用 npm 安装 Hexo。<br>npm install -g hexo-cli</p>
+<h2 id="3、建站"><a href="#3、建站" class="headerlink" title="3、建站"></a>3、建站</h2><p>安装 Hexo 完成后，请执行下列命令，Hexo 将会在指定文件夹中新建所需要的文件。<br> hexo init  XXX<br> cd XXX<br> npm install</p>
+        
+          <div class="more-link">
+            <a href="/2021/11/02/%E6%97%A5%E5%B8%B8%E9%9A%8F%E7%AC%94/%E4%BD%BF%E7%94%A8hexo%E6%9E%84%E5%BB%BA%E5%92%8C%E6%8F%90%E4%BA%A4%E6%96%87%E7%AB%A0/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/10/09/Objc_About/objc_msgSend/objc_msgSend_before/">objc_msgSend_before</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-10-09T10:33:01.000Z" itemprop="datePublished">
+    2021-10-09
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/objc%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">objc源码阅读</a> }
+  </li>
+
+
+  </ul>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="objc-msgSend"><a href="#objc-msgSend" class="headerlink" title="objc_msgSend"></a>objc_msgSend</h1><blockquote>
+<p>从编译后的CPP文件开始</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">        Man * msgMan = [[Man alloc]init];</span><br><span class="line">        </span><br><span class="line">xcrun --sdk iphoneos clang -arch arm64 -rewrite-objc main.m -o main.cpp</span><br><span class="line">===&gt;</span><br><span class="line">        Man *msgMan = ((Man *(*)(id, SEL))(void *)objc_msgSend)((id)</span><br><span class="line">        ((Man *(*)(id, SEL))(void *)objc_msgSend)</span><br><span class="line">        ((id)objc_getClass(&quot;Man&quot;), sel_registerName(&quot;alloc&quot;)), </span><br><span class="line">        sel_registerName(&quot;init&quot;));</span><br><span class="line"></span><br><span class="line">简化一下 摸索了一下</span><br><span class="line">===&gt; 其实就是俄罗斯套娃 哈哈 目前使用了 函数指针的形式调用 </span><br><span class="line">    以前是使用objc_msgSend(id,SEL)这样 前提必须设置Enbale Strict Checking of objc_msgSend Calls为NO 如果为YES 我们必须使用如下解释的函数指针的方式 直接跳过检查</span><br><span class="line">    Man *msgMan = ((Man *(*)(id, SEL))(void *)objc_msgSend)</span><br><span class="line">    ((id)((Man *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass(&quot;Man&quot;), sel_registerName(&quot;alloc&quot;)), //id</span><br><span class="line">    sel_registerName(&quot;init&quot;));//SEL</span><br></pre></td></tr></table></figure>
+        
+          <div class="more-link">
+            <a href="/2021/10/09/Objc_About/objc_msgSend/objc_msgSend_before/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/10/08/Objc_About/objc_msgSend/objc_msgSend_/">objc_msgSend</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-10-08T04:50:32.000Z" itemprop="datePublished">
+    2021-10-08
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/objc%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">objc源码阅读</a> }
+  </li>
+
+
+  </ul>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="objc-msgSend"><a href="#objc-msgSend" class="headerlink" title="objc_msgSend"></a>objc_msgSend</h1><p>在开始objc_msgSend方法的学习时候，以及对平常使用的oc代码进行 消息发送的本质 底层方法是具体如何去理解，调用的进行总结。</p>
+<p>现在开始真正对这个方法进行学习。<br>在objc&#x2F;Source里可以看到 objc-msg-XXX.s（），说明这个方法和__dyld_start一样用汇编语言进行实现的。原因：提高消息发送的过程，使用汇编节省高级语言翻译过程，编译成机器码就可以了。<br>一开始我觉得看不懂汇编，看着里面的内容发现 汇编那么多个内容 你不懂我也不懂 那肯定要有注释 不然谁看懂 整挺好 源码内部真的有注释</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">objc-msg-simulator-x86_64.s</span><br><span class="line">objc-msg-arm.s</span><br><span class="line">objc-msg-arm64.s</span><br><span class="line">objc-msg-i386.s</span><br><span class="line">objc-msg-simulator-i386.s</span><br><span class="line">objc-msg-x86_64.s</span><br></pre></td></tr></table></figure>
+        
+          <div class="more-link">
+            <a href="/2021/10/08/Objc_About/objc_msgSend/objc_msgSend_/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/09/11/Objc_init/%E5%BC%80%E5%A7%8B%E4%B9%8B%E5%89%8D/2%20before%20in%20main/">iOS 程序 main 函数之前发生了什么</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-09-11T08:42:21.000Z" itemprop="datePublished">
+    2021-09-11
+  </time>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="iOS-程序-main-函数之前发生了什么"><a href="#iOS-程序-main-函数之前发生了什么" class="headerlink" title="iOS 程序 main 函数之前发生了什么"></a>iOS 程序 main 函数之前发生了什么</h1><h2 id="dyld"><a href="#dyld" class="headerlink" title="dyld"></a>dyld</h2><p>dyld（the dynamic link editor），Apple 的动态链接器，系统 kernel 做好启动程序的初始准备后，交给 dyld 负责，援引并翻译《 Mike Ash 这篇 blog 》对 dyld 作用顺序的概括：</p>
+<p>从 kernel 留下的原始调用栈引导和启动自己<br>将程序依赖的动态链接库递归加载进内存，当然这里有缓存机制<br>non-lazy 符号立即 link 到可执行文件，lazy 的存表里<br>Runs static initializers for the executable<br>找到可执行文件的 main 函数，准备参数并调用<br>程序执行中负责绑定 lazy 符号、提供 runtime dynamic loading services、提供调试器接口<br>程序main函数 return 后执行 static terminator<br>某些场景下 main 函数结束后调 libSystem 的 _exit 函数</p>
+        
+          <div class="more-link">
+            <a href="/2021/09/11/Objc_init/%E5%BC%80%E5%A7%8B%E4%B9%8B%E5%89%8D/2%20before%20in%20main/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/09/11/Objc_init/%E5%BC%80%E5%A7%8B%E4%B9%8B%E5%89%8D/0%20%E7%BC%96%E8%AF%91Objc%E5%8F%AF%E8%B0%83%E8%AF%95%E4%BB%A3%E7%A0%81%E9%81%87%E5%88%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/">编译Objc可调试代码遇到的一些问题总结</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-09-11T02:10:22.000Z" itemprop="datePublished">
+    2021-09-11
+  </time>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="编译Objc可调试代码遇到的一些问题总结"><a href="#编译Objc可调试代码遇到的一些问题总结" class="headerlink" title="编译Objc可调试代码遇到的一些问题总结"></a>编译Objc可调试代码遇到的一些问题总结</h1><h2 id="如何开始一份新的objc代码编译通过呢"><a href="#如何开始一份新的objc代码编译通过呢" class="headerlink" title="如何开始一份新的objc代码编译通过呢"></a>如何开始一份新的objc代码编译通过呢</h2><ol>
+<li>去GitHub寻找最新别人通过的（利用轮子）</li>
+<li>下载objc源码 接着还需要下载关于系统有关的源码。<br>dyld  Libc-1439 libclosure-79 libdispatch-1271    libplatform-254  libpthread-454 xnu-7195<br>版本可为 最新版本 结合自己的操作系统   编译过程 缺失的头文件 在这些文件中搜索出来<br>实在找不到的就是 一些私有 未公布的文件 估计问题不大 直接注释
+        
+          <div class="more-link">
+            <a href="/2021/09/11/Objc_init/%E5%BC%80%E5%A7%8B%E4%B9%8B%E5%89%8D/0%20%E7%BC%96%E8%AF%91Objc%E5%8F%AF%E8%B0%83%E8%AF%95%E4%BB%A3%E7%A0%81%E9%81%87%E5%88%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/09/08/Objc_init/%E5%BC%80%E5%A7%8B%E4%B9%8B%E5%89%8D/1%20_dyld_start%E4%B9%8B%E5%89%8D/">_dyld_start 之前</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-09-08T09:54:52.000Z" itemprop="datePublished">
+    2021-09-08
+  </time>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="dyld-start-之前"><a href="#dyld-start-之前" class="headerlink" title="_dyld_start 之前"></a>_dyld_start 之前</h1><h2 id="内核挖掘-dyld-start是怎么被调用到的"><a href="#内核挖掘-dyld-start是怎么被调用到的" class="headerlink" title="内核挖掘 _dyld_start是怎么被调用到的"></a>内核挖掘 _dyld_start是怎么被调用到的</h2><blockquote>
+<p>_dyld_start的方法地址的确是在 LC_UNIXTHREAD 段中解析出来的。后续通过thread_setentrypoint 直接将用户态的pc设置到这个地址来执行的。</p>
+</blockquote>
+        
+          <div class="more-link">
+            <a href="/2021/09/08/Objc_init/%E5%BC%80%E5%A7%8B%E4%B9%8B%E5%89%8D/1%20_dyld_start%E4%B9%8B%E5%89%8D/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+</ul>
+
+  <section id="nav-wrapper">
+    <nav id="page-nav">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">next »</a>
+    </nav>
+  </section>
+
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>由git subtree/submodule 引发的关于git hook 的解决方案 | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>由git subtree/submodule 引发的关于git hook 的解决方案</h1>
+    </header>
+
+    <section>
+      <p>最近在学习objc_runtime源码这部分的内容需要写一些笔记，看源码的仓库加入自己的一些笔记，但是看源码的仓库有很多一些关于runtime相关的代码还有前辈朋哥的笔记。我想要把笔记抽出来作为子仓库，同时想要在主仓库里面也留着笔记。</p>
+<p><img src="/./image1.png" alt="图片.png"><br>仓库图</p>
+<p>1、submodule方案</p>
+<p>最常见的办法就是把子仓库作为主仓库的子模块，好有想法直接开搞。我马上就添加子模块，提交代码，发现在主模块中每次提交都不会获知当前子模块修改提交的内容，只会留下一句commit XXXXXX。</p>
+<span id="more"></span>
+
+
+<p><img src="/./image2.png" alt="图片.png"><br>submodule方案</p>
+<p>如果主仓库不关注子仓库的变化的话，可以使用这个方案，但是我关注呀！有时候我又想在主仓库看看我之前提交的内容，GitHub上也看不了，只能看到Submodule XXX。如果这样的话，在GitHub上看不到具体的内容，要拉去代码才能看到里面的内容，岂不是给搜索引擎们缺少（扫）了个机会？可不行，万一我想去GitHub上看看自己的笔记可不是没得谈。</p>
+<p><img src="/./image3.png" alt="图片.png"><br>如果是子模块GitHub中显示状态</p>
+<p>2、subtree方案</p>
+<p>我就想那我就使用subtree的方式。subtree相当于成为主仓库的一个子项目一样，可以看到变更修改所有操作，也可以推上去到主仓库里（具体的subtree的使用已经很多文章介绍到了）。subtree有个缺点，我个人认为的缺点，就是推拉子项目的时候，出现莫名其妙的冲突和无更新内容？？？</p>
+<p><img src="/./image4.png" alt="图片.png"><br>sourcetree 拉取到的内容显示</p>
+<p><img src="/./image5.png" alt="图片.png"><br>推送失败的内容</p>
+<p>主仓库就的README.md和子仓库的README.md大家的路径不一样，为什么你就窜味了呢？再者我明明就有修改 为什么推送出现问题。</p>
+<p>3、第三个猜想—subtree与submodule的结合体？</p>
+<p>因为结合嘛如果想要同时显示和提交，那么有subtree来进行显示以及主仓库管理子项目中文件，submodule来负责提交更新到我们的子仓库中。</p>
+<p>当然不行，还有这么玩？ 因为我们需要同一个路径处理（因为我们改的子仓库内容肯定只有一个地方，难道要两份地方改了这边复制过去？不适合我们计算机仔的逻辑操作）。那么同一个路径的话，当我们加入后者（submodule）时候 ；就会提示改路径已经存在Index重复，我尝试直接在.gitmodules文件中加入无法识别出commit XX（如上submodule方案图） 那么还是无法提交的。</p>
+<p>4、第四个猜想—subtree与git hook结合体   </p>
+<p>思路来源：由于一开始的想抽离笔记为另一个仓库同时又保留在主仓库这个想法，寻求解决方案，第一第二个方案都不完美，第三个方案想法很完美 但是不能完全的实现。所以就想着用subtree方案为基础，我把子仓库的.git文件复制进去不就好了？接着主仓库（子仓库在这里相当于一个文件夹）尽管提交，到时候手动的去提交子仓库。我突然想起不是hook这个东西，好家伙git有个hooks。我直接hook 到主仓库commit的时机在此，偷偷在后面提交和推送子仓库，做到神不知鬼不觉。</p>
+<p><img src="/./image6.png" alt="图片.png"><br>关于git hook</p>
+<pre><code>本次我用到的三个脚本，分别是pre-commit、commit-msg、post-commit；
+
+一开始只是使用到了commit-msg想着在提交的时候，就提交以及推送子仓库的内容。（基本完成了简单我的想法）但是问题来了，难道以后大家要用到这个的时候，专门去找到子仓库的.git文件，接着复制到对应的位置，接着开始，添加commit-msg的内容。这不麻烦吗？可不嘛！所以我开始麻烦自己了，可不可以把.git文件打包成一个压缩包，接着对子仓库是不可见的，对主仓库可见；当主仓库进行提交操作之前，就把其解压出来放好在对应位置，接着就开始提交子仓库的内容。
+</code></pre>
+<p>为什么主仓库可见，因为我们每次都要更新一下子仓库的.git文件（.git文件是在git不可识别的&#x2F;忽略的，所以主仓库中也是无法识别的，才有了压缩包这个想法）。</p>
+<p>  怎么做到呢？</p>
+<p>  第一 在主仓库提交的时候 把子仓库提交并且推送 。</p>
+<pre><code>      子仓库完成了提交和推送之后的.git文件此时可以进行压缩保存
+
+      为提交到主仓库中作准备
+</code></pre>
+<p>  第二 主仓库提交了的内容 必须回滚回来上一个阶段（混合回滚 保留原有修改）</p>
+<pre><code>      因为我这里要把子仓库上次提交的.git压缩包 提交到主仓库中。
+</code></pre>
+<p>  第三 推送主仓库的内容。</p>
+<p><img src="/./image7.png" alt="图片.png"><br>第一步</p>
+<p>第一步 中产生了我们的子仓库.git 压缩包，我们在commit主仓库的时候已经提交上去了 但是我们还没推送 还有话好说，所以我们就需要一个精髓的操作—-回滚上一个阶段。</p>
+<p><img src="/./image8.png" alt="图片.png"><br>第二步 我们才真正的把我们的修改内容（来源上一步回滚）和.git包一起提交上去</p>
+<p>第二步<br>  涉及两个中间变量TEMPVAR、TEMPCOMMITMSG，向.git学习 它就是用这个文件来存储提交的信息，所以我也有两个中间变量，我用完之后还删除了，嘻嘻。</p>
+<p><img src="/./image9.png" alt="图片.png"><br>文件1</p>
+<p><img src="/./image10.png" alt="图片.png"><br>内容</p>
+<p>GitHub：<a target="_blank" rel="noopener" href="https://github.com/pirder/StudyNotes_Objc">https://github.com/pirder/StudyNotes_Objc</a></p>
+<p>直接贴码：</p>
+<p>pre-commit:提交前</p>
+<p>#!&#x2F;bin&#x2F;sh</p>
+<p>#一开始默认是没有.git 必有git压缩包</p>
+<p>#没有git 解压.git</p>
+<p>fileName&#x3D;”.&#x2F;阅读笔记&#x2F;StudyNotes”</p>
+<p>cd “$fileName”</p>
+<p>ls .git &amp;&gt; &#x2F;dev&#x2F;null || {</p>
+<p>tar -xvf subtreeGit.tar.gz &amp;&gt; &#x2F;dev&#x2F;null || {</p>
+<p>echo “没有子仓库的.git 也没有 .git 的压缩包”</p>
+<p>}</p>
+<p>}</p>
+<p>commit-msg:提交中</p>
+<p>#!&#x2F;bin&#x2F;sh</p>
+<h2 id="x3D-x3D-x3D-x3D-x3D-在commit-主仓库时候-就可以如果子仓库有改动就可以把子仓库的提交并且推送了"><a href="#x3D-x3D-x3D-x3D-x3D-在commit-主仓库时候-就可以如果子仓库有改动就可以把子仓库的提交并且推送了" class="headerlink" title="&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; 在commit 主仓库时候 就可以如果子仓库有改动就可以把子仓库的提交并且推送了"></a>&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; 在commit 主仓库时候 就可以如果子仓库有改动就可以把子仓库的提交并且推送了</h2><p>echo “&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;提交之前”</p>
+<p>mssageFile&#x3D;”.&#x2F;阅读笔记&#x2F;StudyNotes&#x2F;TEMPCOMMITMSG”</p>
+<p>fileName&#x3D;”.&#x2F;阅读笔记&#x2F;StudyNotes&#x2F;TEMPVAR”</p>
+<p>TAGCOMMITFIRS&#x3D;$(cat $fileName || {</p>
+<p>##确保之前就存在</p>
+<p>touch $fileName</p>
+<p>echo “true” &gt; $fileName</p>
+<p>})</p>
+<p>TAGCOMMITFIRS&#x3D;$(cat $fileName)</p>
+<p>#第一次 提交tag 为true 非第一次 tag 为false</p>
+<p>if $TAGCOMMITFIRS</p>
+<p>then</p>
+<p>echo “进入 第一次的子库提交”</p>
+<p>else</p>
+<p>echo “提前结束”</p>
+<p>exit 0</p>
+<p>fi</p>
+<p>commitMessage&#x3D;$(cat “$1”)</p>
+<p>hasCommitCommand&#x3D;true</p>
+<p>echo “信息描述为 $commitMessage”</p>
+<p>##确保之前就存在</p>
+<p>touch $mssageFile</p>
+<p>#存起来我们提交的msg</p>
+<p>echo $commitMessage &gt; $mssageFile</p>
+<p>#处理子仓库 提交</p>
+<p>cd .&#x2F;阅读笔记&#x2F;StudyNotes</p>
+<p>git add -A</p>
+<p>git pull origin main #解压出来的git 防止存在版本偏差 先进行拉取</p>
+<p>git commit -m “$commitMessage” || {</p>
+<p>echo “子仓库无commit或者在上一次已经提交了”</p>
+<p>hasCommitCommand&#x3D;false</p>
+<p>}</p>
+<p>#如果有提交内容 就进行推送 并且打包好推送完成的.git文件</p>
+<p>if $hasCommitCommand</p>
+<p>then</p>
+<p>echo “子仓库开始push”</p>
+<p>git push origin main || {</p>
+<p>echo  “子仓库推送失败”</p>
+<p>}</p>
+<p>echo “把子仓库的.git打包起来 接着删除存在的 并且在进行解压”</p>
+<p>#对于子仓库应该是不知他的存在 在主仓库存在</p>
+<p>tar -zcvf subtreeGit.tar.gz .git &amp;&gt; &#x2F;dev&#x2F;null</p>
+<p>fi</p>
+<p>post-commit:提交后</p>
+<p>#!&#x2F;bin&#x2F;sh</p>
+<h2 id="x3D-x3D-x3D-x3D-x3D-在commit-主仓库时候-就可以如果子仓库有改动就可以把子仓库的提交并且推送了-1"><a href="#x3D-x3D-x3D-x3D-x3D-在commit-主仓库时候-就可以如果子仓库有改动就可以把子仓库的提交并且推送了-1" class="headerlink" title="&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; 在commit 主仓库时候 就可以如果子仓库有改动就可以把子仓库的提交并且推送了"></a>&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; 在commit 主仓库时候 就可以如果子仓库有改动就可以把子仓库的提交并且推送了</h2><h2 id="子仓库提交完成之后-主仓库回滚-到上一次提交-把-git-压缩起来提交-以后都能使用-可以在提交前hook把其解压出来"><a href="#子仓库提交完成之后-主仓库回滚-到上一次提交-把-git-压缩起来提交-以后都能使用-可以在提交前hook把其解压出来" class="headerlink" title="子仓库提交完成之后 主仓库回滚 到上一次提交 把.git 压缩起来提交 以后都能使用 可以在提交前hook把其解压出来"></a>子仓库提交完成之后 主仓库回滚 到上一次提交 把.git 压缩起来提交 以后都能使用 可以在提交前hook把其解压出来</h2><p>echo “&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;提交之后”</p>
+<p>##中间变量记录主仓库第几次提交</p>
+<p>fileName&#x3D;”.&#x2F;阅读笔记&#x2F;StudyNotes&#x2F;TEMPVAR”</p>
+<p>##记录中间消息内容</p>
+<p>mssageFile&#x3D;”.&#x2F;阅读笔记&#x2F;StudyNotes&#x2F;TEMPCOMMITMSG”</p>
+<p>TAGCOMMITFIRS&#x3D;$(cat $fileName || {</p>
+<p>echo “true” &gt; $fileName</p>
+<p>})</p>
+<p>TAGCOMMITFIRS&#x3D;$(cat $fileName)</p>
+<p>echo $TAGCOMMITFIRS</p>
+<p>if $TAGCOMMITFIRS</p>
+<p>then</p>
+<p>#回滚之前第一次主仓库提交</p>
+<p>git reset –mixed master^</p>
+<p>TAGCOMMITFIRS&#x3D;false</p>
+<p>echo $TAGCOMMITFIRS &gt; $fileName</p>
+<p>echo “&#x3D;&#x3D;&#x3D;&#x3D;第一个提交 负责处理子仓库中的提交 和 推送”</p>
+<p>git add -A</p>
+<p>commitMsg&#x3D;$(cat $mssageFile)</p>
+<p>#这才是真正的提交</p>
+<p>git commit -m “$commitMsg”</p>
+<p>else</p>
+<p>#移除中间文件</p>
+<p>echo “移除临时中间文件”</p>
+<p>rm -r $fileName</p>
+<p>rm -r $mssageFile</p>
+<p>echo “&#x3D;&#x3D;&#x3D;&#x3D;结束所有流程”</p>
+<p>fi</p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-08-18T14:34:53.000Z" itemprop="datePublished">
+              2021-08-18
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/%E6%97%A5%E5%B8%B8%E9%9A%8F%E7%AC%94/">日常随笔</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

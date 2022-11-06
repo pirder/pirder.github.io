@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>read_images | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>read_images</h1>
+    </header>
+
+    <section>
+      <h1 id="read-images"><a href="#read-images" class="headerlink" title="read_images"></a>read_images</h1><p>旧版本：对类 selector_references protocols objc_msgSend引用 进行加载和修正，<br>其中获取编译好的类加入一个全局管理的哈希表中，对非懒加载的(有+load实现)的类进行识别，<br>最后分类加载添加到对应的宿主类上去。<br>新版本：差别在于 在识别阶段旧版本会methodizeClass 现在需要将ro（编译好的内容）中的方法列表、属性、协议等加载到我们rw中去。<br>新版此时并不会将 ro这些内容进行处理 只会跟旧版本一样把ro复制到rw-&gt;ro中去。！！！如果这个类 没有分类     是不会存在rwx（rw-&gt;ext()）也就是跟旧版本区别点 rw中没有一份重复的 跟ro内容一样的，因为 rw中也有ro 所以他们做了优化是 无分类       到时候需要用到列表、属性、协议直接去ro里面获取 （后面专门一篇文章进行讲述）</p>
+<span id="more"></span>
+
+<h2 id="gdb-objc-realized-classes"><a href="#gdb-objc-realized-classes" class="headerlink" title="gdb_objc_realized_classes"></a>gdb_objc_realized_classes</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int namedClassesSize = (isPreoptimized() ? unoptimizedTotalClasses : totalClasses) * 4 / 3;</span><br><span class="line">gdb_objc_realized_classes = NXCreateMapTable(NXStrValueMapPrototype, namedClassesSize);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>预先优化过的类不会加入到 gdb_objc_realized_classes 这个哈希表中来，<br>gdb_objc_realized_classes 哈希表的装载因子为 0.75，这是一个经过验证的效率很高的扩容临界值。<br>除了 gdb_objc_realized_classes 表之外，还有一张表 allocatedClasses :<br>在新版的objc_已经调整到objc_init runtime.init()处理 robjc::allocatedClasses.init();<br>其实 gdb_objc_realized_classes 对 allocatedClasses 是一种包含的关系，一张是类的总表，一张是已经开辟了内存的类表，</p>
+</blockquote>
+<h2 id="Discover-classes-流程"><a href="#Discover-classes-流程" class="headerlink" title="Discover classes 流程"></a>Discover classes 流程</h2><ol>
+<li>接着还是遍历所有的 Mach-O 的 header 部分</li>
+<li>然后通过 mustReadClasses 来判断哪些条件可以跳过读取类这一步骤（预检）非必需readclass就跳过</li>
+<li>遍历 _getObjc2ClassList 取出的所有的类</li>
+<li>读取 header 是否是 Bundle</li>
+<li>读取 header 是否开启了 预优化</li>
+<li>通过 readClass 来读取类信息</li>
+<li>判断如果不相等并且 readClass 结果不为空，则需要重新为类开辟内存</li>
+</ol>
+<h3 id="readClass"><a href="#readClass" class="headerlink" title="readClass"></a>readClass</h3><p><code>在_read_images里面的readClass missingWeakSuperclass popFutureNamedClass </code><br><code>是不会进入 打断点可知 至于何时处理会进入 后期讨论</code></p>
+<blockquote>
+<p>其中涉及addNamedClass 把我们所有的Class 都存进一个gdb_objc_realized_classes的map中</p>
+</blockquote>
+<blockquote>
+<p>addClassTableEntry 已经分配了才进入 在所有类的表中添加一个类。如果addMeta为真，也自动添加类的元类。这里是不会进入的</p>
+</blockquote>
+<p>**对于这个函数而言 封装起来被多处调用 有部分内容 并不是为readImages此方法所设立 **</p>
+<p><img src="/./../AllImages/readClass_CallHierarchy.png" alt="readClass_CallHierarchy.png"></p>
+<h2 id="Fix-up-remapped-classes-流程"><a href="#Fix-up-remapped-classes-流程" class="headerlink" title="Fix up remapped classes 流程"></a>Fix up remapped classes 流程</h2><ol>
+<li>通过 noClassesRemapped 方法判断是否有类引用(_objc_classrefs)需要进行重映射</li>
+<li>如果需要，则遍历 EACH_HEADER</li>
+<li>通过 _getObjc2ClassRefs 和 _getObjc2SuperRefs 取出当前遍历到的 Mach-O 的类引用和父类引用，然后调用 remapClassRef 进行重映射</li>
+</ol>
+<h2 id="Fix-up-selector-references-流程"><a href="#Fix-up-selector-references-流程" class="headerlink" title="Fix up @selector references 流程"></a>Fix up @selector references 流程</h2><ol>
+<li>遍历 EACH_HEADER</li>
+<li>如果开启了预优化，contiue 到下一个 Mach-O</li>
+<li>通过 _getObjc2SelectorRefs 拿到所有的 SEL 引用</li>
+<li>然后对所有的 SEL 引用调用 sel_registerNameNoLock 进行注册</li>
+<li>也就是说这一流程最主要的目的就是注册 SEL ，我们注册真正发生的地方: __sel_registerName</li>
+</ol>
+<h3 id="sel-registerName-方法的流程："><a href="#sel-registerName-方法的流程：" class="headerlink" title="__sel_registerName 方法的流程："></a>__sel_registerName 方法的流程：</h3><ol>
+<li>判断是否要加锁</li>
+<li>如果 sel 为空，则返回一个空的 SEL</li>
+<li>从 builtins 中搜索，看是否已经注册过，如果找到，直接返回结果</li>
+<li>从 namedSelectors 哈希表中查询，找到了就返回结果</li>
+<li>如果 namedSelectors 未初始化，则创建一下这个哈希表</li>
+<li>如果上面的流程都没有找到，则需要调用 sel_alloc 来创建一下 SEL ，然后把新创建的 SEL 插入哈希表中进行缓存的填充</li>
+</ol>
+<h2 id="Fix-up-old-objc-msgSend-fixup-call-sites-流程"><a href="#Fix-up-old-objc-msgSend-fixup-call-sites-流程" class="headerlink" title="Fix up old objc_msgSend_fixup call sites 流程"></a>Fix up old objc_msgSend_fixup call sites 流程</h2><ol>
+<li>遍历 EACH_HEADER</li>
+<li>通过 _getObjc2MessageRefs 方法来获取当前遍历到的 Mach-O 镜像的所有消息引用</li>
+<li>遍历这些消息引用，调用 fixupMessageRef 进行修正</li>
+</ol>
+<h2 id="Discover-protocols-流程"><a href="#Discover-protocols-流程" class="headerlink" title="Discover protocols 流程"></a>Discover protocols 流程</h2><ol>
+<li>遍历 EACH_HEADER</li>
+<li>通过 _getObjc2ProtocolList 方法来获取当前遍历到的 Mach-O 镜像的所有消息引用</li>
+<li>遍历这些消息引用，调用 readProtocol 进行读取</li>
+</ol>
+<h2 id="Fix-up-protocol-references-流程"><a href="#Fix-up-protocol-references-流程" class="headerlink" title="Fix up @protocol references 流程"></a>Fix up @protocol references 流程</h2><p>对所有的协议做重映射</p>
+<h2 id="Realize-non-lazy-classes-流程"><a href="#Realize-non-lazy-classes-流程" class="headerlink" title="Realize non-lazy classes 流程"></a>Realize non-lazy classes 流程</h2><p>初始化非懒加载类( <strong>+load</strong> 方法和静态实例)</p>
+<h3 id="realizeClass-新版名realizeClassWithoutSwift"><a href="#realizeClass-新版名realizeClassWithoutSwift" class="headerlink" title="realizeClass 新版名realizeClassWithoutSwift"></a>realizeClass 新版名realizeClassWithoutSwift</h3><p><code>前部分</code></p>
+<ol>
+<li>判断是否被处理过了 assert 出去了</li>
+<li>编译器期间就确认了cls ro 通过cls-&gt;data()取出 （内部有个bits 维护着对象相关数据）</li>
+<li>ro-&gt;flags &amp; RO_FUTURE 根据该变量与不同的标志位进行 &amp; 操作判断 是否为元类，是否为根类，是否为ARC 是否为 future class </li>
+<li>申请rw空间 rw中的ro设置为编译期间确认的ro</li>
+<li>接下来标识位和一些参数的设置</li>
+</ol>
+<p><code>后部分</code></p>
+<ol>
+<li>递归调用realizeClass 为什么？说明下面的方法必须先父类 元类 先做 会对子类有影响</li>
+<li>SUPPORT_NONPOINTER_ISA 关于这部分目前暂时跳过</li>
+<li>设置父类和元类 </li>
+<li>reconcileInstanceVariables 关于成员变量（reconcile 调节一致）<br><code>取出父类ro对比子类的ro instanceStart是否大于等于父类ro instanceSize</code><br><code> 运行到 ManSuperClass ro start = 8 super_ro instanceSize = 8 相同</code><br><code>默认留有一定的空间也就是说 偏移的start 就是8 如果父类中 instanceSize</code><br><code>需求空间大于了8 都必须 进行偏移</code></li>
+<li>methodizeClass ro在上面步骤已经处理好了 现在需要将ro（编译好的内容）中的方法列表、属性、协议、分类（需要加入了全局分类map这里是未识别的才做处理 一开始是空的）等加载到我们rw中去。（新版本 还要区分于 是否分类 后面继续分析） ！！！在map_images阶段不进入分类 打断点可知 因为分类map是空的此时</li>
+</ol>
+<blockquote>
+<p>在新版本的objc中 mapimages中 rw-&gt;ext() 分配到才会有 估计时机延后 具体分析学习也进行延后到对应位置 </p>
+</blockquote>
+<h2 id="Discover-categories-流程"><a href="#Discover-categories-流程" class="headerlink" title="Discover categories 流程"></a>Discover categories 流程</h2><p>处理所有的分类，包括类和元类<br><code>Whether the initial attachment of categories present at startup has </code></p>
+<blockquote>
+<p>在新版本之中加入了didInitialAttachCategories判断</p>
+</blockquote>
+<blockquote>
+<p>在此处的 map_images作用不大 暂时忽略深入 &#x3D;&#x3D;&#x3D;》load images 中分析 </p>
+</blockquote>
+<p>引用 <a target="_blank" rel="noopener" href="https://blog.csdn.net/u011132324/article/details/104501248">https://blog.csdn.net/u011132324/article/details/104501248</a></p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-09-01T14:47:22.000Z" itemprop="datePublished">
+              2021-09-01
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/objc%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">objc源码阅读</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

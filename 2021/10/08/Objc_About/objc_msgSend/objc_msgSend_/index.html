@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>objc_msgSend | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>objc_msgSend</h1>
+    </header>
+
+    <section>
+      <h1 id="objc-msgSend"><a href="#objc-msgSend" class="headerlink" title="objc_msgSend"></a>objc_msgSend</h1><p>在开始objc_msgSend方法的学习时候，以及对平常使用的oc代码进行 消息发送的本质 底层方法是具体如何去理解，调用的进行总结。</p>
+<p>现在开始真正对这个方法进行学习。<br>在objc&#x2F;Source里可以看到 objc-msg-XXX.s（），说明这个方法和__dyld_start一样用汇编语言进行实现的。原因：提高消息发送的过程，使用汇编节省高级语言翻译过程，编译成机器码就可以了。<br>一开始我觉得看不懂汇编，看着里面的内容发现 汇编那么多个内容 你不懂我也不懂 那肯定要有注释 不然谁看懂 整挺好 源码内部真的有注释</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">objc-msg-simulator-x86_64.s</span><br><span class="line">objc-msg-arm.s</span><br><span class="line">objc-msg-arm64.s</span><br><span class="line">objc-msg-i386.s</span><br><span class="line">objc-msg-simulator-i386.s</span><br><span class="line">objc-msg-x86_64.s</span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+
+<p>针对看objc-msg-arm64.s 相关的。<br>找到其入口_objc_msgSend 还有一些别后缀的 直接搜索定位</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">	ENTRY _objc_msgSend</span><br><span class="line">	UNWIND _objc_msgSend, NoFrame</span><br><span class="line">	//第一个为信息接受者 判断是否为0 如果是直接返回LReturnZero</span><br><span class="line">	cmp	 p0, #0			// nil check and tagged pointer check</span><br><span class="line">#if SUPPORT_TAGGED_POINTERS</span><br><span class="line">	b.le    LNilOrTagged		//  (MSB tagged pointer looks negative)</span><br><span class="line">#else</span><br><span class="line">	b.eq 	LReturnZero</span><br><span class="line">#endif</span><br><span class="line">	ldr	p13, [x0]		// p13 = isa 拿第一个的地址 也就是isa </span><br><span class="line">	GetClassFromIsa_p16 p13, 1, x0	// p16 = class 获取它的类 存在 p16里面</span><br><span class="line">LGetIsaDone: //名如其目的 get完isa done 往下走</span><br><span class="line">	// calls imp or objc_msgSend_uncached</span><br><span class="line">	//查询缓存 模式？NORMAL Function当前调用的方法 MissLabelDynamic 估计是miss 没命中之后的动态调用？</span><br><span class="line">	CacheLookup NORMAL, _objc_msgSend, __objc_msgSend_uncached </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>接下来进入 CacheLookup 关于缓存查找</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#if defined(__arm64__) &amp;&amp; __LP64__</span><br><span class="line">#if TARGET_OS_OSX || TARGET_OS_SIMULATOR</span><br><span class="line">#define CACHE_MASK_STORAGE CACHE_MASK_STORAGE_HIGH_16_BIG_ADDRS</span><br><span class="line">#else</span><br><span class="line">#define CACHE_MASK_STORAGE CACHE_MASK_STORAGE_HIGH_16</span><br><span class="line">#endif</span><br><span class="line">#elif defined(__arm64__) &amp;&amp; !__LP64__</span><br><span class="line">#define CACHE_MASK_STORAGE CACHE_MASK_STORAGE_LOW_4</span><br><span class="line">#else</span><br><span class="line">#define CACHE_MASK_STORAGE CACHE_MASK_STORAGE_OUTLINED</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+<p>去看新版的源码的时候 有点吓人 新旧变化那么多？<br>我删除一些暂为用到的 我考虑的是 arm64的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">.macro CacheLookup Mode, Function, MissLabelDynamic, MissLabelConstant</span><br><span class="line">	mov	x15, x16			// stash the original isa</span><br><span class="line">LLookupStart\Function:</span><br><span class="line">	// p1 = SEL, p16 = isa</span><br><span class="line">...</span><br><span class="line">#elif CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_HIGH_16</span><br><span class="line">	ldr	p11, [x16, #CACHE]			// p11 = mask|buckets</span><br><span class="line">#if CONFIG_USE_PREOPT_CACHES</span><br><span class="line">#if __has_feature(ptrauth_calls)</span><br><span class="line">	tbnz	p11, #0, LLookupPreopt\Function</span><br><span class="line">	and	p10, p11, #0x0000ffffffffffff	// p10 = buckets</span><br><span class="line">#else</span><br><span class="line">	and	p10, p11, #0x0000fffffffffffe	// p10 = buckets</span><br><span class="line">	tbnz	p11, #0, LLookupPreopt\Function</span><br><span class="line">#endif</span><br><span class="line">	eor	p12, p1, p1, LSR #7</span><br><span class="line">	and	p12, p12, p11, LSR #48		// x12 = (_cmd ^ (_cmd &gt;&gt; 7)) &amp; mask</span><br><span class="line">#else</span><br><span class="line">	and	p10, p11, #0x0000ffffffffffff	// p10 = buckets</span><br><span class="line">	and	p12, p1, p11, LSR #48		// x12 = _cmd &amp; mask</span><br><span class="line">#endif // CONFIG_USE_PREOPT_CACHES</span><br><span class="line">#elif CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_LOW_4</span><br><span class="line">...</span><br><span class="line">#else</span><br><span class="line">#error Unsupported cache mask storage for ARM64.</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">	add	p13, p10, p12, LSL #(1+PTRSHIFT)</span><br><span class="line">						// p13 = buckets + ((_cmd &amp; mask) &lt;&lt; (1+PTRSHIFT))</span><br><span class="line"></span><br><span class="line">						// do &#123;</span><br><span class="line">1:	ldp	p17, p9, [x13], #-BUCKET_SIZE	//     &#123;imp, sel&#125; = *bucket--</span><br><span class="line">	cmp	p9, p1				//     if (sel != _cmd) &#123;</span><br><span class="line">	b.ne	3f				//         scan more</span><br><span class="line">						//     &#125; else &#123;</span><br><span class="line">2:	CacheHit \Mode				// hit:    call or return imp</span><br><span class="line">						//     &#125;</span><br><span class="line">3:	cbz	p9, \MissLabelDynamic		//     if (sel == 0) goto Miss;</span><br><span class="line">	cmp	p13, p10			// &#125; while (bucket &gt;= buckets)</span><br><span class="line">	b.hs	1b</span><br><span class="line"></span><br><span class="line">	// wrap-around:</span><br><span class="line">	//   p10 = first bucket</span><br><span class="line">	//   p11 = mask (and maybe other bits on LP64)</span><br><span class="line">	//   p12 = _cmd &amp; mask</span><br><span class="line">	//</span><br><span class="line">	// A full cache can happen with CACHE_ALLOW_FULL_UTILIZATION.</span><br><span class="line">	// So stop when we circle back to the first probed bucket</span><br><span class="line">	// rather than when hitting the first bucket again.</span><br><span class="line">	//</span><br><span class="line">	// Note that we might probe the initial bucket twice</span><br><span class="line">	// when the first probed slot is the last entry.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#if CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_HIGH_16_BIG_ADDRS</span><br><span class="line">...</span><br><span class="line">#elif CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_HIGH_16</span><br><span class="line">	add	p13, p10, p11, LSR #(48 - (1+PTRSHIFT))</span><br><span class="line">						// p13 = buckets + (mask &lt;&lt; 1+PTRSHIFT)</span><br><span class="line">						// see comment about maskZeroBits</span><br><span class="line">#elif CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_LOW_4</span><br><span class="line">...</span><br><span class="line">#else</span><br><span class="line">#error Unsupported cache mask storage for ARM64.</span><br><span class="line">#endif</span><br><span class="line">	add	p12, p10, p12, LSL #(1+PTRSHIFT)</span><br><span class="line">						// p12 = first probed bucket</span><br><span class="line"></span><br><span class="line">						// do &#123;</span><br><span class="line">4:	ldp	p17, p9, [x13], #-BUCKET_SIZE	//     &#123;imp, sel&#125; = *bucket--</span><br><span class="line">	cmp	p9, p1				//     if (sel == _cmd)</span><br><span class="line">	b.eq	2b				//         goto hit</span><br><span class="line">	cmp	p9, #0				// &#125; while (sel != 0 &amp;&amp;</span><br><span class="line">	ccmp	p13, p12, #0, ne		//     bucket &gt; first_probed)</span><br><span class="line">	b.hi	4b</span><br><span class="line">//__has_feature(ptrauth_calls): 是判断编译器是否支持指针身份验证功能</span><br><span class="line">//ptrauth_calls 指针身份验证，针对arm64e架构；使用Apple A12或更高版本A系列处理器的设备</span><br><span class="line">//（如iPhone XS、iPhone XS Max和iPhone XR或更新的设备）支持arm64e架构</span><br></pre></td></tr></table></figure>
+
+<p>这一大段 emmm 太难受了 但是通过其他办法来理解 对比新旧代码 以及在cache_t里面的插入缓存方法<br>在旧版中 还存在 这个find方法 在新版中已经没有了 集合合在insert里了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">bucket_t *b = buckets();</span><br><span class="line">mask_t m = capacity - 1;</span><br><span class="line">mask_t begin = cache_hash(sel, m);</span><br><span class="line">mask_t i = begin;</span><br><span class="line"></span><br><span class="line">// Scan for the first unused slot and insert there.</span><br><span class="line">// There is guaranteed to be an empty slot.</span><br><span class="line">do &#123;</span><br><span class="line">    if (fastpath(b[i].sel() == 0)) &#123;</span><br><span class="line">        incrementOccupied();</span><br><span class="line">        b[i].set&lt;Atomic, Encoded&gt;(b, sel, imp, cls());</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line">    if (b[i].sel() == sel) &#123;</span><br><span class="line">        // The entry was added to the cache by some other thread</span><br><span class="line">        // before we grabbed the cacheUpdateLock.</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line">&#125; while (fastpath((i = cache_next(i, m)) != begin));</span><br></pre></td></tr></table></figure>
+
+<p>对比来学习 也就是说<br>在此查询的目的就是 在汇编的角度来拿出它的buckets 接着key值为：<code>(mask_t)(value &amp; mask); //value 相当sel </code>  拿到之后进行遍历（mast转一圈又回到原处 来结束）这里查到到直接return 不插入 如果在查找过程 找到了 就应该调用 <code>CacheHit \Mode              // hit:    call or return imp</code>现在是insert过程 所以是return<br>找到了是0那就说明是空的插入set 但是在我们查找过程 为0就应该miss <code>3:  cbz p9, \MissLabelDynamic       //     if (sel == 0) goto Miss;</code><br>再回去一字一字的去看 汇编 发现 简单如斯</p>
+<p>接着没命中（这才能继续往下走）MissLabelDynamic 还记得当初传进来的是啥？ __objc_msgSend_uncached！！！ 对的 定位到这个地方（在Mac 上用commonLine 断点调试 也可以看到这个）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">STATIC_ENTRY __objc_msgSend_uncached</span><br><span class="line">	UNWIND __objc_msgSend_uncached, FrameWithNoSaves</span><br><span class="line"></span><br><span class="line">	// THIS IS NOT A CALLABLE C FUNCTION</span><br><span class="line">	// Out-of-band p15 is the class to search</span><br><span class="line">	</span><br><span class="line">	MethodTableLookup //这个是一个不可调用的？C函数？可能后期改为C?</span><br><span class="line">	TailCallFunctionPointer x17</span><br><span class="line"></span><br><span class="line">	END_ENTRY __objc_msgSend_uncached</span><br><span class="line">	</span><br><span class="line">.macro MethodTableLookup</span><br><span class="line">	</span><br><span class="line">	SAVE_REGS MSGSEND</span><br><span class="line"></span><br><span class="line">	// lookUpImpOrForward(obj, sel, cls, LOOKUP_INITIALIZE | LOOKUP_RESOLVER)</span><br><span class="line">	// receiver and selector already in x0 and x1</span><br><span class="line">	mov	x2, x16 //应该给我们准备 cls 以及后面的传入参数</span><br><span class="line">	mov	x3, #3 </span><br><span class="line">	bl	_lookUpImpOrForward //接着调用这个_lookUpImpOrForward</span><br><span class="line"></span><br><span class="line">	// IMP in x0</span><br><span class="line">	mov	 x17, x0</span><br><span class="line"></span><br><span class="line">	RESTORE_REGS MSGSEND</span><br><span class="line"></span><br><span class="line">.endmacro</span><br></pre></td></tr></table></figure>
+<p>简单看一下上面的源码 其实最终就调用到了.<br> <code>IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)</code><br>checkIsKnowClass &#x2F;&#x2F; 防止不是class类的？ CFI 控制流完整性（Control Flow Integrity, CFI）的防御机制<br><code>    cls = realizeAndInitializeIfNeeded_locked(inst, cls, behavior &amp; LOOKUP_INITIALIZE);</code><br>这就是调用我们的常用的initialize方法之处 盲猜 必须要标志位调一次而已  （cls-&gt;isInitialized）.<br> 接下来就进入到了 类和父类的方法列表查找了（旧版本很清晰 新版本 维护了一个for 无退出条件的循环 需要break）     </p>
+<ol>
+<li>先是判断有没有支持缓存优化 有的话就查询cache中缓存 <code>cache_getImp(curClass, sel)</code> 接着从<code>curClass-&gt;cache.preoptFallbackClass</code>再拿缓存。奇怪 如果这里一直拿不到 怎么出来到我的方法中拿呢？猜测是<code>cache.preoptFallbackClass </code>移动回来得到的不会进入这个缓存优化。   </li>
+<li><code>Method meth = getMethodNoSuper_nolock(curClass, sel);</code>获取目前class的方法列表 通过SEL查找对应的方法,查询到跳转done    </li>
+<li>在2中拿不到就 把curClass 设置为父类 接着查询父类的缓存，接着就是第二个循环里面 查询当前类（第一次的父类）的方法列表 继续循环下去 </li>
+<li>知道找到 缓存起来 <code>log_and_fill_cache(cls, imp, sel, inst, curClass);</code> 并且返回imp   或者 没找到break 跳出循环 走动态方法决议。</li>
+</ol>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-10-08T04:50:32.000Z" itemprop="datePublished">
+              2021-10-08
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/objc%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">objc源码阅读</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

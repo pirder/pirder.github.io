@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <ul class="Index">
+  
+    <header class='PageTitle'>
+        <h1>{ New Challenge }</h1>
+    </header>
+  
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/11/04/%E5%AD%A6%E4%B9%A0%E6%96%B0%E5%BE%81%E7%A8%8B/RxSwift/RxSwift%E7%AE%80%E5%8D%95%E5%85%A5%E9%97%A8/">Rxswift简单入门</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-11-04T02:36:28.000Z" itemprop="datePublished">
+    2021-11-04
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/New-Challenge/">New Challenge</a> }
+  </li>
+
+
+  </ul>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="RxSwift简单入门"><a href="#RxSwift简单入门" class="headerlink" title="# RxSwift简单入门"></a># RxSwift简单入门</h1><p>​		最近接手了一个其他部门开发的相机类项目，现全权由我们组进行维护。我打开一看，整挺好全是RxSwift（心里骂骂咧咧，咋平常也没用都是原生开发），应该提前让我们看代码的，收到需求了才开始看，还好一天就够了。马上就打开了RxSwift文档来看 过一遍基础的东西。</p>
+<p>​		首先了解到究竟 Rx这个特点是啥，函数响应式编程，前一篇文章了解这个概念之后；就进行下一步的关于RxSwift的核心API和一些基础理论的学习了。</p>
+<p>​		一开始接受这些那些的可监听序列，观察者等概念，是迷糊的，是抗拒的；心里也很想明白其中的中心思想是啥，他们怎么去运作的呢？（有些新东西一开始不太懂，只能用程序打败程序，函数打败函数，如下代码块）</p>
+<p>​		先说个人总结：序列相当于触发者，也就是说序列，相当于我们传统思维中写好的一些函数；那有函数，必须就要有函数调用。噢，剩下一个那就是观察者了，观察者跟我们单纯的调用不一样，我们可以在里面进行再处理。</p>
+<p>​		个人认为特点在于序列的再组合(各种个样的操作符filter,map,merge等)，也就是函数式调用。</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typealias</span> <span class="type">TYPE</span> <span class="operator">=</span> <span class="type">Int</span></span><br><span class="line"><span class="comment">//可监听序列</span></span><br><span class="line"><span class="keyword">let</span> observabler: <span class="type">Observable</span>&lt;<span class="type">TYPE</span>&gt; <span class="operator">=</span> <span class="comment">//这里的返回值是type</span></span><br><span class="line"><span class="type">Observable</span>.create &#123; (observer) -&gt; <span class="type">Disposable</span> <span class="keyword">in</span></span><br><span class="line">  <span class="keyword">let</span> resultType <span class="operator">=</span> type.<span class="keyword">init</span>()</span><br><span class="line">  <span class="comment">//----在此处做一些基本的操作----</span></span><br><span class="line">  observer.onNext(resultType)</span><br><span class="line">  observer.onCompleted()</span><br><span class="line">  <span class="keyword">return</span> <span class="type">Disposables</span>.create()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//观察者</span></span><br><span class="line">observabler.subscribe(onNext: &#123; (tpye)</span><br><span class="line">   <span class="built_in">print</span>(<span class="string">&quot;onNext<span class="subst">\(type)</span>&quot;</span>)</span><br><span class="line">&#125;, onErrir: &#123; error <span class="keyword">in</span></span><br><span class="line">   <span class="built_in">print</span>(<span class="string">&quot;error&quot;</span>)</span><br><span class="line">&#125;, onCompleted: &#123;</span><br><span class="line">   <span class="built_in">print</span>(<span class="string">&quot;completed&quot;</span>)</span><br><span class="line">&#125;).disposed(by: disposeBag)</span><br></pre></td></tr></table></figure>
+        
+          <div class="more-link">
+            <a href="/2021/11/04/%E5%AD%A6%E4%B9%A0%E6%96%B0%E5%BE%81%E7%A8%8B/RxSwift/RxSwift%E7%AE%80%E5%8D%95%E5%85%A5%E9%97%A8/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+    <li>
+      <article class='ListView'>
+    <header class="title">
+      
+        <h1>
+          <a href="/2021/11/03/%E5%AD%A6%E4%B9%A0%E6%96%B0%E5%BE%81%E7%A8%8B/RxSwift/%E5%87%BD%E6%95%B0%E5%93%8D%E5%BA%94%E5%BC%8F%E7%BC%96%E7%A8%8B/">函数响应式编程</a>
+        </h1>
+      
+      <div class='ListMeta'>
+  <time datetime="2021-11-03T03:36:28.000Z" itemprop="datePublished">
+    2021-11-03
+  </time>
+  
+  | 
+  <ul>
+    
+  <li class="meta-text">
+  { <a href="/tags/New-Challenge/">New Challenge</a> }
+  </li>
+
+
+  </ul>
+  
+  
+</div>
+
+    </header>
+    <div>
+      
+        <h1 id="函数响应式编程"><a href="#函数响应式编程" class="headerlink" title="# 函数响应式编程"></a># 函数响应式编程</h1><p>开始之前了解一下什么是<strong>函数响应式编程</strong>？</p>
+<p><strong>函数响应式编程</strong>是种编程范式。它是通过构建函数操作数据序列，然后对这些序列做出响应的编程方式。它结合了<strong>函数式编程</strong>以及<strong>响应式编程</strong></p>
+<h2 id="函数式编程"><a href="#函数式编程" class="headerlink" title="函数式编程"></a>函数式编程</h2><p><strong>函数式编程</strong>—它需要我们将函数作为参数传递，或者作为返回值返还。我们可以通过组合不同的函数来得到想要的结果。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">allPeople.filter&#123; people in people.age == 18 &#125;.forEach &#123; youngPeople in youngPeople.play(activity: .study )&#125;</span><br><span class="line"></span><br><span class="line">filter中返回值是people 是经过筛选的people  数组形式</span><br></pre></td></tr></table></figure>
+
+<p>个人在日常开发中用遇到的的就是函数式编程（链式调用） 就如在统计相关信息上传的时候 参数比较多</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">```statistics.name(hello).info(info).upload()```</span><br></pre></td></tr></table></figure>
+
+<p><strong>函数式编程</strong>来操作序列</p>
+<h2 id="响应式编程"><a href="#响应式编程" class="headerlink" title="响应式编程"></a>响应式编程</h2><p><strong>响应式编程（reactive programming）是一种基于数据流（data stream）和变化传递（propagation of change）的声明式（declarative）的编程范式。</strong></p>
+        
+          <div class="more-link">
+            <a href="/2021/11/03/%E5%AD%A6%E4%B9%A0%E6%96%B0%E5%BE%81%E7%A8%8B/RxSwift/%E5%87%BD%E6%95%B0%E5%93%8D%E5%BA%94%E5%BC%8F%E7%BC%96%E7%A8%8B/#more">Read On »</a>
+          </div>
+        
+      
+    </div>
+</article>
+
+    </li>
+  
+</ul>
+
+
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

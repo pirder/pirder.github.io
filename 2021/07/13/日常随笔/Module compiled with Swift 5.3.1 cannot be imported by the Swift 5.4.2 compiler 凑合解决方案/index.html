@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Module compiled with Swift 5.3.1 cannot be imported by the Swift 5.4.2 compiler 凑合解决方案 | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>Module compiled with Swift 5.3.1 cannot be imported by the Swift 5.4.2 compiler 凑合解决方案</h1>
+    </header>
+
+    <section>
+      <p>今日开始接手别人开发好的项目继续维护 好家伙日常自动更新 跟上最新Xcode的脚步（还不至于用到beta版本）Xcode12.5.1 。</p>
+<p>拿到项目一顿骚操作 开始到神圣的command+R 跑起来。有且仅有一个报错（Module compiled with Swift 5.3.1 cannot be imported by the Swift 5.4.2 compiler）</p>
+<p>好家伙 我知道了 劝退新Xcode，（搞两个版本Xcode老是崩 或者 本来一个现在被更新了又要去官网偷偷下载一个旧版本的 那不就是很惨）。</p>
+<p>办法是有的 （可能还是有其他的解决方案 目前个人水平摸索到的暂时如下）</p>
+<span id="more"></span>
+
+<p>1、确定到了哪个framework 找那个人重新打一个 不过这次就要按照这个来。</p>
+<p>You need to set the Build Libraries for Distribution option to Yes in your framework’s build settings</p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/58654714/module-compiled-with-swift-5-1-cannot-be-imported-by-the-swift-5-1-2-compiler">https://stackoverflow.com/questions/58654714/module-compiled-with-swift-5-1-cannot-be-imported-by-the-swift-5-1-2-compiler</a></p>
+<p>2、好了，这个是不好找的。只能委屈求全去下载Toolchain 导入进去 </p>
+<p>找对版本才行喔</p>
+<p><a target="_blank" rel="noopener" href="https://swift.org/download/#snapshots">https://swift.org/download/#snapshots</a></p>
+<p><img src="/./image1.png" alt="图片1.png"><br>下载完安装 自动导入到了对应的目录下（如果全部用户可用的话 &#x2F;Library&#x2F;Developer&#x2F;Toolchains&#x2F;swift-5.3-RELEASE.xctoolchain ）</p>
+<p>有些同学想要 提前取Xcode看看有没有 Toolchain 再去下载旧的导入 那可不你发现没安装之前是隐藏的 ，安装之后就会出现。</p>
+<p><img src="/./image2.png" alt="安装前.png"></p>
+<p><img src="/./image3.png" alt="安装后.png"><br>好了 既然有了这个Toolchain 直接开跑。command+R 弹出如图提示。</p>
+<p><img src="/./image4.png" alt="不允许.png"></p>
+<p>啊这。。。 好吧 我委曲求全 我build一下总可以吧，其实按道理是可行的。(包括Archive)</p>
+<p>但是你一开始那个framework可能放过你了 可是你还有Pod进来各种各样。</p>
+<p>build过程中提示 symbol(s) not found for architecture arm64</p>
+<p>Undefined symbol: ___isOSVersionAtLeast</p>
+<p>Undefined symbol: ___cxa_guard_acquire</p>
+<p>Undefined symbol: ___cxa_guard_release</p>
+<p><img src="/./image5.png" alt="build失败图.png"></p>
+<p>发现问题 就先看看这个toolchain的包内容观察观察 和我们原来的有什么差别 要不我直接魔改替换？我就去找大佬朋哥 要了一波Xcode12.4里默认的toolchain(路径&#x2F;Applications&#x2F;Xcode.app&#x2F;Contents&#x2F;Developer&#x2F;Toolchains&#x2F;XcodeDefault.xctoolchain )</p>
+<p>好家伙里面只有三个文件 跟我们不就就差了3个 故名思义第一个肯定差在签名，如果看到上安装后图 unknow就知道了我魔改的没有签名 接着就是system了 还有info.plist</p>
+<p><img src="/./image6.png" alt="文件差异对比.png"><br>我们默认的就只有这个？com.apple.dt.toolchain.XcodeDefault swift open source下载的又一大堆。</p>
+<p><img src="/./image7.png" alt="plist文件对比.png"><br>我试过直接把原来12.4Xcode里的Toolchain放到系统建立的toolchain文件夹（下面安装建好的toolchain 文件夹简称系统toolchain文件夹，Xcode的叫12.5.1toolchain 或者12.4toolchain, swift open source下来的叫 S5.3Open  toolchain ）。Xcode无法识别出来，接着我就把12.4toolchain 放进去 打开包内容 把S5.3Open  toolchain的info.plist 和system放进去系统toolchain文件夹。(不放system你的CPU就会裂开 里面是LLDB )</p>
+<p><img src="/./image8.png" alt="修改后.png"><br>接着选中我们要的 Command+B </p>
+<p> 好了 成功了 但是最终的目的没达成 我想要真机跑起来呀</p>
+<p><img src="/./image9.png" alt="成功.png"><br><img src="/./image10.png" alt="选中.png"></p>
+<p>那我自己去到xcode里替换为12.4的Toolchain不就好了吗？&#x2F;Applications&#x2F;Xcode.app&#x2F;Contents&#x2F;Developer&#x2F;Toolchains&#x2F;XcodeDefault.xctoolchain 估计是通过（Identifier）id来确定 这里面的这个toolchain是唯一默认的 你不能放两个。替换好了 其实他就是12.4的toolchain（支持Swift 5.3.1 Module compiled） 就能真机的跑起来了。</p>
+<p>其实如果不介意其他的问题的话 可以替换为打包机对应Xcode版本里的toolchain 跟着打包机 共进退 就能提前发现问题。</p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-07-13T10:35:47.000Z" itemprop="datePublished">
+              2021-07-13
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/%E6%97%A5%E5%B8%B8%E9%9A%8F%E7%AC%94/">日常随笔</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

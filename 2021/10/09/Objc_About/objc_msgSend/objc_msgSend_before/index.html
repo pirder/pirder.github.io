@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>objc_msgSend_before | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>objc_msgSend_before</h1>
+    </header>
+
+    <section>
+      <h1 id="objc-msgSend"><a href="#objc-msgSend" class="headerlink" title="objc_msgSend"></a>objc_msgSend</h1><blockquote>
+<p>从编译后的CPP文件开始</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">        Man * msgMan = [[Man alloc]init];</span><br><span class="line">        </span><br><span class="line">xcrun --sdk iphoneos clang -arch arm64 -rewrite-objc main.m -o main.cpp</span><br><span class="line">===&gt;</span><br><span class="line">        Man *msgMan = ((Man *(*)(id, SEL))(void *)objc_msgSend)((id)</span><br><span class="line">        ((Man *(*)(id, SEL))(void *)objc_msgSend)</span><br><span class="line">        ((id)objc_getClass(&quot;Man&quot;), sel_registerName(&quot;alloc&quot;)), </span><br><span class="line">        sel_registerName(&quot;init&quot;));</span><br><span class="line"></span><br><span class="line">简化一下 摸索了一下</span><br><span class="line">===&gt; 其实就是俄罗斯套娃 哈哈 目前使用了 函数指针的形式调用 </span><br><span class="line">    以前是使用objc_msgSend(id,SEL)这样 前提必须设置Enbale Strict Checking of objc_msgSend Calls为NO 如果为YES 我们必须使用如下解释的函数指针的方式 直接跳过检查</span><br><span class="line">    Man *msgMan = ((Man *(*)(id, SEL))(void *)objc_msgSend)</span><br><span class="line">    ((id)((Man *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass(&quot;Man&quot;), sel_registerName(&quot;alloc&quot;)), //id</span><br><span class="line">    sel_registerName(&quot;init&quot;));//SEL</span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">再简化一下</span><br><span class="line">===&gt;</span><br><span class="line">    id classMan = ((Man *(*)(id, SEL))(void *)objc_msgSend) //id</span><br><span class="line">	((id)objc_getClass(&quot;Man&quot;), sel_registerName(&quot;alloc&quot;)) //SEL</span><br><span class="line">    Man *msgMan =  ((Man *(*)(id, SEL))(void *)objc_msgSend) //id</span><br><span class="line">    (classMan, sel_registerName(&quot;init&quot;)) //SEL</span><br><span class="line">    </span><br><span class="line">最细解释</span><br><span class="line">===&gt;</span><br><span class="line">	void *msgSendIMP = (void *)objc_msgSend;</span><br><span class="line">    Man *(*funcMsgSend)(id,SEL) = msgSendIMP; //有这里可知 原代码的地方 使用了匿名函数指针(Man *(*)(id, SEL)) 一开始看懵逼到 恍然大悟 </span><br><span class="line">    Man *msgMan = funcMsgSend((id)objc_getClass(&quot;Man&quot;),sel_registerName(&quot;alloc&quot;));</span><br><span class="line">    由此递推 alloc init 等其他方法</span><br><span class="line">    </span><br><span class="line">    //看不懂看这里</span><br><span class="line">    //看看C++的函数指针相关的内容</span><br><span class="line">    //IMP 相关 </span><br><span class="line">    执行IMP void (*func)(id, SEL, id) = (void *)imp;  func(self, methodName,param);</span><br><span class="line">    注意分析：如果方法没有传入参数时：void (*func)(id, SEL) = (void *)imp;   func(self, methodName);</span><br><span class="line">    如果方法传入一个参数时：void (*func)(id, SEL,id) = (void *)imp;   func(self, methodName,param);</span><br><span class="line">    如果方法传入俩个参数时：void (*func)(id, SEL,id,id) = (void *)imp;   func(self, methodName,param1,param2);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-10-09T10:33:01.000Z" itemprop="datePublished">
+              2021-10-09
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/objc%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">objc源码阅读</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

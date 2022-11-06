@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>编译Objc可调试代码遇到的一些问题总结 | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>编译Objc可调试代码遇到的一些问题总结</h1>
+    </header>
+
+    <section>
+      <h1 id="编译Objc可调试代码遇到的一些问题总结"><a href="#编译Objc可调试代码遇到的一些问题总结" class="headerlink" title="编译Objc可调试代码遇到的一些问题总结"></a>编译Objc可调试代码遇到的一些问题总结</h1><h2 id="如何开始一份新的objc代码编译通过呢"><a href="#如何开始一份新的objc代码编译通过呢" class="headerlink" title="如何开始一份新的objc代码编译通过呢"></a>如何开始一份新的objc代码编译通过呢</h2><ol>
+<li>去GitHub寻找最新别人通过的（利用轮子）</li>
+<li>下载objc源码 接着还需要下载关于系统有关的源码。<br>dyld  Libc-1439 libclosure-79 libdispatch-1271    libplatform-254  libpthread-454 xnu-7195<br>版本可为 最新版本 结合自己的操作系统   编译过程 缺失的头文件 在这些文件中搜索出来<br>实在找不到的就是 一些私有 未公布的文件 估计问题不大 直接注释   <span id="more"></span></li>
+</ol>
+<h2 id="为什么项目识别到我们的objc项目-并且断点调试"><a href="#为什么项目识别到我们的objc项目-并且断点调试" class="headerlink" title="为什么项目识别到我们的objc项目 并且断点调试"></a>为什么项目识别到我们的objc项目 并且断点调试</h2><p>创建一个空的workspace 在同一个workspace下<br>目录结构为 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">▼ XXX.workspace   </span><br><span class="line">  ▼ objc  </span><br><span class="line">  ▼ macDemoBaseObjc </span><br><span class="line">  ▼ xxxDemo</span><br><span class="line">  同时在把objc中生成的product拉进macDemoBaseObjc项目文件中即可</span><br><span class="line">   Xcode会自动寻找到他的隐含依赖（依据名字寻找 就会在build过程中也会build objc相关的target ）</span><br></pre></td></tr></table></figure>
+<ul>
+<li>理论基础：</li>
+<li><pre><code> 一个Target和它的product可以和其他Target联系，如果一个target build需要另一个target的“输出”，
+</code></pre>
+</li>
+<li><pre><code> 可以说成第一个target依赖第二个。
+</code></pre>
+</li>
+<li><pre><code> 如果这俩个target在同一个workspace，Xcode会发现他们的依赖关系，从而build the products按照特定的顺序。这样的关系被称为“ implicit dependency.”
+</code></pre>
+</li>
+<li><pre><code>  你也可以为俩个targets指定明确的target 依赖关系在build setting里面。
+</code></pre>
+</li>
+<li><pre><code> 例如，你可能build一个library和一个链接这个library的application（同一个workspace）。Xcode可以发现这种关系并且自动build这个library first。
+</code></pre>
+</li>
+<li><pre><code> 然而，你如果要去链接library的某个版本而不是one built in the workspace，你可以在build settings里创建一个确定的依赖关系，它将会覆盖implicit dependency。
+</code></pre>
+</li>
+<li><pre><code> 引用：https://blog.csdn.net/houseq/article/details/24260917
+</code></pre>
+</li>
+</ul>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-09-11T02:10:22.000Z" itemprop="datePublished">
+              2021-09-11
+            </time>
+          </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>__autoreleasing ARC下关于Objective-C二级指针 | Priders</title>
+  
+  
+  
+  <!--link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css"-->
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/highlight.js/9.10.0/styles/github-gist.min.css">
+
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+<div class="Shell">
+    <aside class='SideBar'>
+    <section class='avatar' style="background-image: url()">
+        <div class='av-pic' style="background-image: url()">
+        </div>
+    </section>
+    <section class='menu'>
+        <div>Priders</div>
+        
+        <ul>
+          
+            <a href="/" class="Btn">
+              <li>Home</li>
+            </a>  
+          
+            <a href="/archives/" class="Btn">
+              <li>Archive</li>
+            </a>  
+          
+        </ul>
+    </section>
+    <section class="media">
+        
+    </section>
+</aside>
+
+    <div class="container">
+        <div data-pager-shell>
+            <div>
+  <article class='ContentView'>
+    <header class='PageTitle'>
+        <h1>__autoreleasing ARC下关于Objective-C二级指针</h1>
+    </header>
+
+    <section>
+      <p>最近在重温iOS与OSX多线程和内存管理这本书，发现平常没注意到的问题。</p>
+<p>在ARC下 如何使用二级指针</p>
+<pre><code>NSObject *obj = [[NSObject alloc] init];
+
+NSLog(@&quot;getNewObject Before %p&quot;,obj);
+
+[self getNewObjcet: &amp;obj];
+
+NSLog(@&quot;getNewObject after %p&quot;,obj);
+</code></pre>
+<p>-(void)getNewObjcet:(NSObject **) obj{</p>
+<pre><code>NSLog(@&quot;getNewObject Before %p&quot;,*obj);
+
+*obj = [[NSObject alloc]init];
+
+NSLog(@&quot;getNewObject after %p&quot;,*obj);
+</code></pre>
+<p>}</p>
+<span id="more"></span>
+
+<p>打印结果：</p>
+<p><img src="/./image1.png" alt="图片1.png"></p>
+<p>在OC里通常命名getXXX传入 返回值以指针形式返回</p>
+<p>按道理getNewObjcet 中</p>
+<p>*object 就是外面的obj</p>
+<p>object 就是外面的&amp;obj</p>
+<pre><code>NSObject *obj = [[NSObject alloc]init];
+
+NSLog(@&quot;\ngetNewObject Before %p&quot;,obj);
+
+NSLog(@&quot;\ngetNewObject &amp;obj %p&quot;,&amp;obj);
+
+[self getNewObjcet:&amp;obj];
+
+NSLog(@&quot;\ngetNewObject after %p&quot;,obj);
+</code></pre>
+<p>-(void)getNewObjcet:(NSObject**)object{</p>
+<pre><code>NSLog(@&quot;\nIN getNewObject object ==? &amp;obj %p&quot;,object);
+
+NSLog(@&quot;\nIN getNewObject Before %p&quot;,*object);
+
+*object = [[NSObject alloc]init];
+
+NSLog(@&quot;\nIN getNewObject after %p&quot;,*object);
+</code></pre>
+<p>}</p>
+<p>但打印getNewObjcet中的object 一看究竟</p>
+<p><img src="/./image2.png" alt="图片.png"><br>打印结果<br>内存地址对不上呀 为什么会这样 他们不是一个东西嘛？</p>
+<p>对的他们不是同一个东西</p>
+<p>其实调用    [self getNewObjcet: (NSObject *__autoreleasing *)]；代码补全时候告诉了我们</p>
+<p>非显式使用__autoreleasing  id *obj  其实就是id __autoreleasing *obj </p>
+<p>对象的指针就是 NSObject **obj  &#x3D; &#x3D; &gt;&gt;  NSObject *__autoreleasing *obj</p>
+<p>默认的</p>
+<p>-(void)getNewObjcet:(NSObject **)object &#x3D;&#x3D;&gt;&gt; -(void)getNewObjcet:(NSObject *__autoreleasing *)object</p>
+<p>由于上面的    NSObject *obj &#x3D; [[NSObject alloc]init]; 默认修饰符 __strong</p>
+<pre><code>NSObject *obj = [[NSObject alloc]init];
+
+NSObject *__autoreleasing * objPtr = &amp;obj;
+</code></pre>
+<p>这样是不可行的 Initializing ‘NSObject *__autoreleasing *’ with an expression of type ‘NSObject *__strong *’ changes retain&#x2F;release properties of pointer</p>
+<p>所以其实在ARC下编译器 帮我们做了这件事情</p>
+<pre><code>NSObject __autoreleasing *temp = obj;
+
+NSObject *__autoreleasing *tempPtr = &amp;temp;
+
+[self getNewObjcet: tempPtr]；
+</code></pre>
+<p><img src="/./image3.png" alt="图片.png"><br>呼应上了<br>综上所述 他把我们的temp 偷偷的藏起来了。</p>
+
+
+      
+
+    </section>
+    
+      <section class='ArticleMeta'>
+          <div>
+            发布于&nbsp;
+            <time datetime="2021-07-12T12:05:13.000Z" itemprop="datePublished">
+              2021-07-12
+            </time>
+          </div>
+          
+            <div>
+              tags: 
+  <li class="meta-text">
+  { <a href="/tags/%E6%97%A5%E5%B8%B8%E9%9A%8F%E7%AC%94/">日常随笔</a> }
+  </li>
+
+
+            </div>
+          
+      </section>
+    
+    
+</article>
+
+  
+</div>
+
+            <footer>
+    <div>© 2022 - priders </div>
+    <div>
+        <span>
+            Powered by <a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a>
+        </span>
+        ,
+        <span>
+            Theme - <a target="_blank" rel="noopener" href="https://github.com/nameoverflow/hexo-theme-icalm">Icalm</a>
+        </span>
+    </div>
+</footer>
+
+        </div>
+    </div>
+</div>
+
+<script src="/js/pager/dist/singlepager.js"></script>
+
+<script>
+var sp = new Pager('data-pager-shell')
+
+</script>
+</body>
+</html>
